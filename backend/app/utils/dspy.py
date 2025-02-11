@@ -1,10 +1,10 @@
 import os
 import datetime
 import hashlib
-from typing import Any, Literal
-
 import dspy
 import requests
+
+from typing import Any, Literal
 from dsp.modules.lm import LM
 from llama_index.core.base.llms.base import BaseLLM
 from llama_index.llms.openai import OpenAI
@@ -12,7 +12,8 @@ from llama_index.llms.openai_like import OpenAILike
 from llama_index.llms.gemini import Gemini
 from llama_index.llms.bedrock import Bedrock
 from llama_index.llms.ollama import Ollama
-from app.rag.llms.anthropic_vertex import AnthropicVertex
+from llama_index.llms.vertex import Vertex
+from llama_index.llms.azure_openai import AzureOpenAI
 
 
 def get_dspy_lm_by_llama_llm(llama_llm: BaseLLM) -> dspy.LM:
@@ -52,7 +53,9 @@ def get_dspy_lm_by_llama_llm(llama_llm: BaseLLM) -> dspy.LM:
         bedrock = dspy.Bedrock(region_name=llama_llm.region_name)
         if llama_llm.model.startswith("anthropic"):
             return dspy.AWSAnthropic(
-                bedrock, model=llama_llm.model, max_new_tokens=llama_llm.max_tokens
+                bedrock,
+                model=llama_llm.model,
+                max_new_tokens=llama_llm.max_tokens or 8192,
             )
         elif llama_llm.model.startswith("meta"):
             return dspy.AWSMeta(
@@ -70,8 +73,11 @@ def get_dspy_lm_by_llama_llm(llama_llm: BaseLLM) -> dspy.LM:
             raise ValueError(
                 "Bedrock model " + llama_llm.model + " is not supported by dspy."
             )
-    elif type(llama_llm) is AnthropicVertex:
-        raise ValueError("AnthropicVertex is not supported by dspy.")
+    elif type(llama_llm) is Vertex:
+        return dspy.GoogleVertexAI(
+            model=llama_llm.model,
+            max_output_tokens=llama_llm.max_tokens or 8192,
+        )
     elif type(llama_llm) is Ollama:
         return DspyOllamaLocal(
             model=llama_llm.model,
@@ -80,6 +86,15 @@ def get_dspy_lm_by_llama_llm(llama_llm: BaseLLM) -> dspy.LM:
             temperature=llama_llm.temperature,
             max_tokens=llama_llm.context_window,
             num_ctx=llama_llm.context_window,
+        )
+    elif type(llama_llm) is AzureOpenAI:
+        return dspy.AzureOpenAI(
+            model=llama_llm.model,
+            max_tokens=llama_llm.max_tokens or 4096,
+            api_key=llama_llm.api_key,
+            api_base=enforce_trailing_slash(llama_llm.azure_endpoint),
+            api_version=llama_llm.api_version,
+            deployment_id=llama_llm.engine,
         )
     else:
         raise ValueError(f"Got unknown LLM provider: {llama_llm.__class__.__name__}")

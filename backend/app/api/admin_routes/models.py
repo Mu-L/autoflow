@@ -3,7 +3,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 from app.api.admin_routes.embedding_model.models import EmbeddingModelItem
-from app.types import LLMProvider
+from app.rag.llms.provider import LLMProvider
 
 
 class LLMDescriptor(BaseModel):
@@ -20,11 +20,15 @@ class EmbeddingModelDescriptor(EmbeddingModelItem):
 
 class UserDescriptor(BaseModel):
     id: UUID
+    email: str
 
 
 class KnowledgeBaseDescriptor(BaseModel):
     id: int
     name: str
+
+    def __hash__(self):
+        return hash(self.id)
 
 
 class DataSourceDescriptor(BaseModel):
@@ -38,7 +42,10 @@ class ChatEngineDescriptor(BaseModel):
     is_default: bool
 
 
-class RetrieveRequest(BaseModel):
+class ChatEngineBasedRetrieveRequest(BaseModel):
     query: str
     chat_engine: Optional[str] = "default"
     top_k: Optional[int] = 5
+    similarity_top_k: Optional[int] = None
+    oversampling_factor: Optional[int] = 5
+    refine_question_with_kg: Optional[bool] = False
