@@ -25,8 +25,8 @@ website:
   homepage_footer_links:
     default:
       - text: "Release Notes"
-        href: "https://tidb.ai/docs/changelog"
-      - text: "Powered by TiDB Vector"
+        href: "https://autoflow.tidb.ai/releases"
+      - text: "Powered by TiDB"
         href: "https://tidb.cloud/ai"
       - text: "© 2024 PingCAP"
         href: "https://pingcap.com"

@@ -25,12 +25,20 @@ test:
 	@uv run pytest -v tests/
 
 dev_backend:
-	@echo "Running development backend server..."
-	@uv run fastapi run app/api_server.py --host 0.0.0.0 --port 5001
+	@echo "Running backend server in development mode..."
+	@uv run fastapi dev app/api_server.py --host 127.0.0.1 --port 5001
+
+run_backend:
+	@echo "Running backend server..."
+	@uv run fastapi run app/api_server.py --host 0.0.0.0 --port 5001 --workers 4
+
+dev_celery_flower:
+	@echo "Running Celery Flower..."
+	@uv run celery -A app.celery flower --address=0.0.0.0 --port=5555
 
 dev_background_worker:
 	@echo "Running background worker..."
-	@uv run celery -A app.celery worker -Q default
+	@uv run celery -A app.celery worker -Q default -l INFO -E
 
 dev_eval_worker:
 	@echo "Running evaluation worker..."
