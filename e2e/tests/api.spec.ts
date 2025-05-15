@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+
 import type { APIResponse } from 'playwright-core';
 import { loginViaApi } from '../utils/login';
 
@@ -69,13 +70,13 @@ test.describe('API', () => {
     await expectGetOkStep('/api/v1/admin/feedbacks');
 
     await expectGetOkStep('/api/v1/admin/llms');
-    await expectGetOkStep('/api/v1/admin/llms/options');
+    await expectGetOkStep('/api/v1/admin/llms/providers/options');
 
     await expectGetOkStep('/api/v1/admin/embedding-models');
-    await expectGetOkStep('/api/v1/admin/embedding-models/options');
+    await expectGetOkStep('/api/v1/admin/embedding-models/providers/options');
 
     await expectGetOkStep('/api/v1/admin/reranker-models');
-    await expectGetOkStep('/api/v1/admin/reranker-models/options');
+    await expectGetOkStep('/api/v1/admin/reranker-models/providers/options');
 
     await expectGetOkStep('/api/v1/admin/retrieve/documents?chat_engine=1&question=what%20is%20tidb&chat_engine=default&top_k=5');
     await expectGetOkStep('/api/v1/admin/embedding_retrieve?chat_engine=1&question=what%20is%20tidb&chat_engine=default&top_k=5');

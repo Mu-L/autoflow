@@ -29,18 +29,15 @@ def resolve_llm(
             config.setdefault("context_window", 200 * 1000)
             return OpenAILike(model=model, api_key=credentials, **config)
         case LLMProvider.BEDROCK:
-            from llama_index.llms.bedrock import Bedrock
-            from llama_index.llms.bedrock.utils import BEDROCK_FOUNDATION_LLMS
+            from llama_index.llms.bedrock_converse import BedrockConverse
 
             access_key_id = credentials["aws_access_key_id"]
             secret_access_key = credentials["aws_secret_access_key"]
             region_name = credentials["aws_region_name"]
 
             config.setdefault("max_tokens", 4096)
-            if model not in BEDROCK_FOUNDATION_LLMS:
-                config.setdefault("context_size", 2000000)
 
-            return Bedrock(
+            return BedrockConverse(
                 model=model,
                 aws_access_key_id=access_key_id,
                 aws_secret_access_key=secret_access_key,
@@ -51,7 +48,7 @@ def resolve_llm(
             from llama_index.llms.google_genai import GoogleGenAI
 
             return GoogleGenAI(model=model, api_key=credentials, **config)
-        case LLMProvider.VERTEX_AI:
+        case LLMProvider.VERTEX_AI | LLMProvider.ANTHROPIC_VERTEX:
             from llama_index.llms.google_genai import GoogleGenAI
             from llama_index.llms.google_genai.base import VertexAIConfig
             from google.oauth2 import service_account

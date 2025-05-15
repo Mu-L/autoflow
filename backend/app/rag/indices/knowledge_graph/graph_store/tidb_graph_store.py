@@ -38,12 +38,9 @@ from app.rag.retrievers.knowledge_graph.schema import (
     RetrievedKnowledgeGraph,
 )
 from app.models import (
-    Entity as DBEntity,
-    Relationship as DBRelationship,
-    Chunk as DBChunk,
     KnowledgeBase,
+    EntityType,
 )
-from app.models import EntityType
 
 logger = logging.getLogger(__name__)
 
@@ -87,12 +84,12 @@ class TiDBGraphStore(KnowledgeGraphStore):
         self,
         knowledge_base: KnowledgeBase,
         dspy_lm: dspy.LM,
+        entity_db_model: Type[SQLModel],
+        relationship_db_model: Type[SQLModel],
+        chunk_db_model: Type[SQLModel],
         session: Optional[Session] = None,
         embed_model: Optional[EmbedType] = None,
         description_similarity_threshold=0.9,
-        entity_db_model: Type[SQLModel] = DBEntity,
-        relationship_db_model: Type[SQLModel] = DBRelationship,
-        chunk_db_model: Type[SQLModel] = DBChunk,
     ):
         self.knowledge_base = knowledge_base
         self._session = session
@@ -682,9 +679,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
                 query = query.where(relationships_alias.meta[k] == v)
 
         if visited_relationships:
-            query = query.where(
-                self._relationship_model.id.notin_(visited_relationships)
-            )
+            query = query.where(subquery.c.id.notin_(visited_relationships))
 
         if distance_range != (0.0, 1.0):
             # embedding_distance between the range
@@ -695,9 +690,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
             ).params(min_distance=distance_range[0], max_distance=distance_range[1])
 
         if visited_entities:
-            query = query.where(
-                self._relationship_model.source_entity_id.in_(visited_entities)
-            )
+            query = query.where(subquery.c.source_entity_id.in_(visited_entities))
 
         query = query.order_by(asc("embedding_distance")).limit(limit)
 
